@@ -17,7 +17,13 @@ RUN if [ -f "./package-lock.json" ]; then npm install; \
 RUN npm run build
 
 # nginx state for serving content
-FROM nginx:alpine
+FROM nginxinc/nginx-unprivileged:stable-alpine-slim
+
+# Update nginx user/group in alpine
+ENV ENABLE_PERMISSIONS=TRUE
+ENV DEBUG_PERMISSIONS=TRUE
+ENV USER_NGINX=10015
+ENV GROUP_NGINX=10015
 # Set working directory to nginx asset directory
 WORKDIR /usr/share/nginx/html
 # Remove default nginx static assets
