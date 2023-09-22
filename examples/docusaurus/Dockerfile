@@ -19,6 +19,10 @@ COPY . .
 # Build the Docusaurus website (replace 'npm run build' with your build script if different)
 RUN npm run build
 
+RUN chown -R 10500:10500 "/app"
+
+USER 10500
+
 # Expose the port that Docusaurus will run on (usually 3000)
 EXPOSE 3001
 
