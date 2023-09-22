@@ -5,7 +5,7 @@ FROM node:18-alpine as builder
 WORKDIR /app
 
 # Install build tools
-RUN apk add --update --no-cache autoconf automake libtool gifsicle pngquant build-base libpng-dev nasm
+RUN apk add --update --no-cache autoconf automake libtool gifsicle
 
 # Copy package.json and package-lock.json to the working directory
 COPY . .
