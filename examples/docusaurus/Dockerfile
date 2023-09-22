@@ -1,32 +1,33 @@
-# Stage 1: Build the React app using Node.js and Ubuntu base image
+# Multi-stage
+# 1) Node image for building frontend assets
+# 2) nginx stage to serve frontend assets
+
+# Name the node stage "builder"
 FROM node:18 AS builder
-
-# Set the working directory in the builder container
+RUN npm install -g pnpm
+# Set working directory
 WORKDIR /app
-
+# Copy all files from current directory to working dir in image
 COPY . .
-
-ENV npm_config_cache=/app
-
+# install node modules and build assets
 RUN if [ -f "./package-lock.json" ]; then npm install; \
     elif [ -f "./yarn.lock" ]; then yarn; \           
     elif [ -f "./pnpm-lock.yaml" ]; then pnpm install;fi
 
-# Copy the entire project directory to the working directory
-COPY . .
-
-# Build the React app (replace 'npm run build' with your build script if different)
 RUN npm run build
 
-# Stage 2: Create the final Alpine-based image
+# nginx state for serving content
 FROM nginx:alpine
+# Set working directory to nginx asset directory
+WORKDIR /usr/share/nginx/html
+# Remove default nginx static assets
+RUN rm -rf ./*
+# Copy static assets from builder stage
+COPY --from=builder /app/build/test-site .
 
-# Copy the built React app from the builder stage to the nginx web server's HTML directory
-COPY --from=builder /app/build /usr/share/nginx/html
-USER 10014
+USER 10500
 
-# Expose port 80 (default for HTTP traffic)
-EXPOSE 80
+EXPOSE 8080
 
-# Start the nginx web server when the container is run
+# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
