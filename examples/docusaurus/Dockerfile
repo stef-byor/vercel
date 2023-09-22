@@ -1,30 +1,29 @@
-# Use the official Node.js image as the base image
-FROM node:18-alpine as builder
+# Stage 1: Build the React app using Node.js and Ubuntu base image
+FROM node:18 AS builder
 
-# Set the working directory in the container
+# Set the working directory in the builder container
 WORKDIR /app
 
-# Install build tools
-RUN apk add --update --no-cache autoconf automake libtool gifsicle pngquant build-base libpng-dev nasm
-
 # Copy package.json and package-lock.json to the working directory
-COPY . .
+COPY package*.json ./
 
 # Install project dependencies
-RUN yarn
+RUN npm install
 
 # Copy the entire project directory to the working directory
 COPY . .
 
-# Build the Docusaurus website (replace 'npm run build' with your build script if different)
+# Build the React app (replace 'npm run build' with your build script if different)
 RUN npm run build
 
-RUN chown -R 10500:10500 "/app"
+# Stage 2: Create the final Alpine-based image
+FROM nginx:alpine
 
-USER 10500
+# Copy the built React app from the builder stage to the nginx web server's HTML directory
+COPY --from=builder /app/build /usr/share/nginx/html
 
-# Expose the port that Docusaurus will run on (usually 3000)
-EXPOSE 3001
+# Expose port 80 (default for HTTP traffic)
+EXPOSE 80
 
-# Start Docusaurus (replace 'npm start' with your start script if different)
-CMD ["npm", "start"]
+# Start the nginx web server when the container is run
+CMD ["nginx", "-g", "daemon off;"]
