@@ -4,11 +4,13 @@ FROM node:18 AS builder
 # Set the working directory in the builder container
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
-COPY package*.json ./
+COPY . .
 
-# Install project dependencies
-RUN npm install
+ENV npm_config_cache=/app
+
+RUN if [ -f "./package-lock.json" ]; then npm install; \
+    elif [ -f "./yarn.lock" ]; then yarn; \           
+    elif [ -f "./pnpm-lock.yaml" ]; then pnpm install;fi
 
 # Copy the entire project directory to the working directory
 COPY . .
